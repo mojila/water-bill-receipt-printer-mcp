@@ -8,7 +8,11 @@
   },
   "scripts": {
     "build": "tsc && powershell -NoProfile -Command \"Copy-Item src/print_raw.py build/print_raw.py -Force\"",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "desktop:build": "dotnet build desktop/PrintReceiptWater.Desktop.csproj -c Release",
+    "desktop:start": "dotnet run --project desktop/PrintReceiptWater.Desktop.csproj -c Release",
+    "desktop:publish": "dotnet publish desktop/PrintReceiptWater.Desktop.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o dist/desktop",
+    "desktop:sync-assets": "powershell -NoProfile -Command \"Copy-Item src/print_raw.py desktop/assets/print_raw.py -Force\""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",

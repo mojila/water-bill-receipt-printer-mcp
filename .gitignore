@@ -5,6 +5,14 @@ node_modules/
 build/
 dist/
 
+# Runtime data (units are edited from the desktop app / MCP tools)
+data/
+
+# .NET / desktop
+bin/
+obj/
+*.user
+
 # Environment
 .env
 .env.*
