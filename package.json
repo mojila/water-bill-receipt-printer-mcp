@@ -1,0 +1,21 @@
+{
+  "name": "print-receipt-water",
+  "version": "1.0.0",
+  "description": "MCP Server for EPPOS EP5821 Thermal Printer - Water Bill Receipts",
+  "type": "module",
+  "bin": {
+    "print-receipt-water": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && powershell -NoProfile -Command \"Copy-Item src/print_raw.py build/print_raw.py -Force\"",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.7.3"
+  }
+}
