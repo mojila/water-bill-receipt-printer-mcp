@@ -16,6 +16,7 @@
     <Version>1.0.0</Version>
     <Product>Nota Air Kos Manyar 3/51-53</Product>
     <AssemblyTitle>Nota Air Kos Manyar 3/51-53</AssemblyTitle>
+    <ApplicationIcon>..\assets\receipt.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,7 @@
     <EmbeddedResource Include="assets\app.css" />
     <None Include="assets\print_raw.py" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\src\print_raw.py" Link="print_raw.py" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\assets\receipt.png" Link="assets\receipt.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

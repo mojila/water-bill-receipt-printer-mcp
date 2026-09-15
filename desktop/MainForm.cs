@@ -28,7 +28,7 @@ public sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(1120, 800);
         MinimumSize = new Size(880, 640);
-        Icon = LoadAppIcon();
+        Icon = LoadIconFromAsset() ?? LoadAppIcon();
 
         Controls.Add(_webView);
         Load += async (_, _) => await InitializeWebViewAsync();
@@ -39,6 +39,35 @@ public sealed class MainForm : Form
         try { return Icon.ExtractAssociatedIcon(Application.ExecutablePath); }
         catch { return null; }
     }
+
+    /// <summary>Draws the window/taskbar icon from assets\receipt.png so it matches the app artwork.</summary>
+    private static Icon? LoadIconFromAsset()
+    {
+        try
+        {
+            var assetPath = Path.Combine(AppPaths.IconDirectory, "receipt.png");
+            if (!File.Exists(assetPath)) return null;
+
+            using var source = Image.FromFile(assetPath);
+            using var bitmap = new Bitmap(256, 256);
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                graphics.DrawImage(source, new Rectangle(0, 0, 256, 256));
+            }
+
+            var handle = bitmap.GetHicon();
+            try { return (Icon)Icon.FromHandle(handle).Clone(); }
+            finally { DestroyIcon(handle); }
+        }
+        catch { return null; }
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+    private static extern bool DestroyIcon(IntPtr handle);
 
     /// <summary>
     /// Exercises the message handlers with the same JSON payloads the UI sends,
@@ -587,6 +616,22 @@ public sealed class MainForm : Form
 internal static class AppPaths
 {
     public static string AssetsDirectory { get; } = ResolveAssetsDirectory();
+
+    /// <summary>Directory holding the app artwork (receipt.png), used for the window icon.</summary>
+    public static string IconDirectory { get; } = ResolveIconDirectory();
+
+    private static string ResolveIconDirectory()
+    {
+        var baseDir = AppContext.BaseDirectory;
+
+        var copied = Path.Combine(baseDir, "assets");
+        if (File.Exists(Path.Combine(copied, "receipt.png"))) return copied;
+
+        var repoDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "assets"));
+        if (File.Exists(Path.Combine(repoDir, "receipt.png"))) return repoDir;
+
+        return copied;
+    }
 
     private static string ResolveAssetsDirectory()
     {
