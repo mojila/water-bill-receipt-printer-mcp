@@ -1,0 +1,17 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "snapshot": false,
+  "mcp": {
+    "print-receipt-water": {
+      "type": "local",
+      "command": [
+        "node",
+        "c:/Users/Moijla/Projects/print-receipt-water/build/index.js"
+      ],
+      "environment": {
+        "PRINTER_NAME": "POS-58"
+      },
+      "enabled": true
+    }
+  }
+}

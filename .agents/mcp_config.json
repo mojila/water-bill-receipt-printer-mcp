@@ -1,0 +1,13 @@
+﻿{
+  "mcpServers": {
+    "print-receipt-water": {
+      "command": "node",
+      "args": [
+        "c:/Users/Moijla/Projects/print-receipt-water/build/index.js"
+      ],
+      "env": {
+        "PRINTER_NAME": "POS-58"
+      }
+    }
+  }
+}
