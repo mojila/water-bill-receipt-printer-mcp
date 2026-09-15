@@ -1,4 +1,4 @@
-import { UnitBill, formatRupiah } from "./data.js";
+import { UnitBill, formatRupiah, padLine, centerText, LINE_WIDTH } from "./core.js";
 
 // ESC/POS Command Constants
 const ESC = "\x1b";
@@ -21,22 +21,6 @@ export const COMMANDS = {
   PARTIAL_CUT: `${GS}V\x01`,
   FULL_CUT: `${GS}V\x00`,
 };
-
-const LINE_WIDTH = 32; // 58mm standard width (32 chars)
-
-export function padLine(left: string, right: string, width: number = LINE_WIDTH): string {
-  const spaceNeeded = width - (left.length + right.length);
-  if (spaceNeeded <= 0) {
-    return left + " " + right;
-  }
-  return left + " ".repeat(spaceNeeded) + right;
-}
-
-export function centerText(text: string, width: number = LINE_WIDTH): string {
-  if (text.length >= width) return text;
-  const leftPad = Math.floor((width - text.length) / 2);
-  return " ".repeat(leftPad) + text;
-}
 
 /**
  * Generate binary buffer containing ESC/POS commands for 58mm thermal printer
@@ -104,13 +88,7 @@ export function buildEscposReceipt(bill: UnitBill): Buffer {
   parts.push("-".repeat(LINE_WIDTH) + "\n");
 
   // FOOTER
-  const now = new Date();
-  const printDate = `${String(now.getDate()).padStart(2, "0")}/${String(
-    now.getMonth() + 1
-  ).padStart(2, "0")}/${now.getFullYear()} ${String(now.getHours()).padStart(
-    2,
-    "0"
-  )}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const printDate = formatPrintDate();
 
   parts.push(COMMANDS.ALIGN_CENTER);
   parts.push("Terima Kasih\n");
@@ -131,13 +109,7 @@ export function buildTextReceiptPreview(bill: UnitBill): string {
   const divider = "-".repeat(LINE_WIDTH);
   const doubleDivider = "=".repeat(LINE_WIDTH);
   const period = (bill.period || "TAGIHAN").toUpperCase();
-  const now = new Date();
-  const printDate = `${String(now.getDate()).padStart(2, "0")}/${String(
-    now.getMonth() + 1
-  ).padStart(2, "0")}/${now.getFullYear()} ${String(now.getHours()).padStart(
-    2,
-    "0"
-  )}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const printDate = formatPrintDate();
 
   return [
     divider,
@@ -163,4 +135,85 @@ export function buildTextReceiptPreview(bill: UnitBill): string {
     centerText(`Dicetak: ${printDate}`),
     divider,
   ].join("\n");
+}
+
+export function formatPrintDate(date: Date = new Date()): string {
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}/${date.getFullYear()} ${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes()
+  ).padStart(2, "0")}`;
+}
+
+/** Render the 58mm receipt for a WebView2 page (HTML + browser print dialog). */
+export function buildReceiptHtml(bill: UnitBill, paperWidthMm: number = 58): string {
+  const escape = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  const period = (bill.period || "TAGIHAN").toUpperCase();
+
+  return `<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<title>Nota ${escape(bill.name)}</title>
+<style>
+  @page { size: ${paperWidthMm}mm auto; margin: 3mm 3mm 3mm 3mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef0f2; font-family: "Segoe UI", Tahoma, sans-serif; }
+  .sheet {
+    width: ${paperWidthMm}mm; margin: 12px auto; padding: 3mm;
+    background: #fff; color: #000; font-size: 11px; line-height: 1.35;
+  }
+  .center { text-align: center; }
+  .big { font-size: 17px; font-weight: 800; letter-spacing: .4px; }
+  .divider { border-top: 1px dashed #000; margin: 4px 0; }
+  .double { border-top: 2px solid #000; margin: 4px 0; }
+  .row { display: flex; justify-content: space-between; gap: 6px; }
+  .muted { font-size: 10px; }
+  .toolbar {
+    position: sticky; top: 0; display: flex; gap: 8px; justify-content: center;
+    padding: 10px; background: #1f2937; color: #fff;
+  }
+  .toolbar button {
+    font: inherit; font-size: 13px; padding: 6px 14px; border: 0; border-radius: 6px;
+    background: #2563eb; color: #fff; cursor: pointer;
+  }
+  .toolbar button.ghost { background: #4b5563; }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { margin: 0; padding: 0; width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button onclick="window.print()">Cetak</button>
+  <button class="ghost" onclick="window.chrome?.webview?.postMessage({type:'close'})">Tutup</button>
+</div>
+<div class="sheet">
+  <div class="center">KOS MANYAR 3/51-53<br />NOTA TAGIHAN AIR</div>
+  <div class="divider"></div>
+  <div class="center big">${escape(period)}</div>
+  <div class="divider"></div>
+  <div>Nama Penghuni:</div>
+  <div class="big">${escape(bill.name.toUpperCase())}</div>
+  <div style="margin-top:6px">Pemakaian Air:</div>
+  <div class="big">${escape(String(bill.usageM3))} m3</div>
+  <div class="divider"></div>
+  <div class="row"><span>Tagihan Air:</span><span>${escape(formatRupiah(bill.waterBill))}</span></div>
+  <div class="row"><span>Uang Plastik Sampah:</span><span>${escape(formatRupiah(bill.garbageFee))}</span></div>
+  <div class="double"></div>
+  <div class="center">TOTAL TAGIHAN:</div>
+  <div class="center big">${escape(formatRupiah(bill.total))}</div>
+  <div class="divider"></div>
+  <div class="center muted">Terima Kasih<br />Dicetak: ${escape(formatPrintDate())}</div>
+</div>
+</body>
+</html>`;
 }

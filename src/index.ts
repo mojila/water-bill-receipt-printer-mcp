@@ -8,7 +8,8 @@ import {
   computeReceipt,
   formatRupiah,
   UANG_PLASTIK_SAMPAH,
-  getDefaultPeriod,
+  MONTHS,
+  makePeriod,
 } from "./data.js";
 import { buildEscposReceipt, buildTextReceiptPreview } from "./escpos.js";
 import {
@@ -16,11 +17,16 @@ import {
   checkPrinterStatus,
   DEFAULT_PRINTER_NAME,
 } from "./printer.js";
+import { getSettings, setSettings, getUnits, setUnits, loadStore } from "./store.js";
 
 const server = new McpServer({
   name: "print-receipt-water",
   version: "1.0.0",
 });
+
+function text(body: string) {
+  return { content: [{ type: "text" as const, text: body }] };
+}
 
 /**
  * TOOL 1: list_receipts
@@ -37,9 +43,10 @@ server.tool(
   },
   async ({ period }) => {
     const receipts = getAllDefaultReceipts(period);
+    const settings = getSettings();
     const lines = [
       `=== DAFTAR TAGIHAN AIR KOS MANYAR 3/51-53 (${receipts[0]?.period}) ===`,
-      `Biaya Plastik Sampah per unit: ${formatRupiah(UANG_PLASTIK_SAMPAH)}`,
+      `Biaya Plastik Sampah per unit: ${formatRupiah(settings.garbageFee)}`,
       "",
       "| No | Nama Unit / Penghuni | Pemakaian (m3) | Tagihan Air   | Plastik Sampah | Total Tagihan |",
       "|---|----------------------|----------------|---------------|----------------|---------------|",
@@ -69,14 +76,7 @@ server.tool(
       )}** | **${formatRupiah(totalGarbage)}** | **${formatRupiah(grandTotal)}** |`
     );
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: lines.join("\n"),
-        },
-      ],
-    };
+    return text(lines.join("\n"));
   }
 );
 
@@ -99,25 +99,13 @@ server.tool(
   async ({ unitName, period }) => {
     const bill = findReceiptByUnitName(unitName, period);
     if (!bill) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Unit dengan nama '${unitName}' tidak ditemukan. Silakan gunakan tool list_receipts untuk melihat nama unit yang tersedia.`,
-          },
-        ],
-      };
+      return text(
+        `Unit dengan nama '${unitName}' tidak ditemukan. Silakan gunakan tool list_receipts untuk melihat nama unit yang tersedia.`
+      );
     }
 
     const preview = buildTextReceiptPreview(bill);
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Pratinjau Nota Thermal (58mm) untuk ${bill.name}:\n\n\`\`\`\n${preview}\n\`\`\``,
-        },
-      ],
-    };
+    return text(`Pratinjau Nota Thermal (58mm) untuk ${bill.name}:\n\n\`\`\`\n${preview}\n\`\`\``);
   }
 );
 
@@ -144,43 +132,28 @@ server.tool(
   async ({ unitName, period, printerName }) => {
     const bill = findReceiptByUnitName(unitName, period);
     if (!bill) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Unit dengan nama '${unitName}' tidak ditemukan dalam daftar. Gunakan tool 'print_custom_receipt' jika ingin mencetak unit di luar daftar default.`,
-          },
-        ],
-      };
+      return text(
+        `Unit dengan nama '${unitName}' tidak ditemukan dalam daftar. Gunakan tool 'print_custom_receipt' jika ingin mencetak unit di luar daftar default.`
+      );
     }
 
-    const targetPrinter = printerName || DEFAULT_PRINTER_NAME;
+    const targetPrinter = printerName || getSettings().printerName;
     const rawBuffer = buildEscposReceipt(bill);
 
     try {
       const result = await sendRawToPrinter(rawBuffer, targetPrinter);
       const preview = buildTextReceiptPreview(bill);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `✅ ${result.message}\n\nUnit: ${bill.name}\nPemakaian: ${bill.usageM3} m3\nTagihan Air: ${formatRupiah(
-              bill.waterBill
-            )}\nUang Plastik Sampah: ${formatRupiah(bill.garbageFee)}\nTotal: ${formatRupiah(
-              bill.total
-            )}\nPeriode: ${bill.period}\n\nPratinjau Fisik:\n\`\`\`\n${preview}\n\`\`\``,
-          },
-        ],
-      };
+      return text(
+        `✅ ${result.message}\n\nUnit: ${bill.name}\nPemakaian: ${bill.usageM3} m3\nTagihan Air: ${formatRupiah(
+          bill.waterBill
+        )}\nUang Plastik Sampah: ${formatRupiah(bill.garbageFee)}\nTotal: ${formatRupiah(
+          bill.total
+        )}\nPeriode: ${bill.period}\n\nPratinjau Fisik:\n\`\`\`\n${preview}\n\`\`\``
+      );
     } catch (err: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `❌ Gagal mencetak nota untuk ${bill.name} ke printer '${targetPrinter}'.\nError: ${err.message}`,
-          },
-        ],
-      };
+      return text(
+        `❌ Gagal mencetak nota untuk ${bill.name} ke printer '${targetPrinter}'.\nError: ${err.message}`
+      );
     }
   }
 );
@@ -208,7 +181,7 @@ server.tool(
   },
   async ({ period, printerName, delayMs = 1500 }) => {
     const receipts = getAllDefaultReceipts(period);
-    const targetPrinter = printerName || DEFAULT_PRINTER_NAME;
+    const targetPrinter = printerName || getSettings().printerName;
     const results: string[] = [];
 
     for (let i = 0; i < receipts.length; i++) {
@@ -216,7 +189,9 @@ server.tool(
       try {
         const rawBuffer = buildEscposReceipt(bill);
         await sendRawToPrinter(rawBuffer, targetPrinter);
-        results.push(`✅ [${i + 1}/${receipts.length}] ${bill.name} (${formatRupiah(bill.total)}) berhasil dicetak.`);
+        results.push(
+          `✅ [${i + 1}/${receipts.length}] ${bill.name} (${formatRupiah(bill.total)}) berhasil dicetak.`
+        );
       } catch (err: any) {
         results.push(`❌ [${i + 1}/${receipts.length}] ${bill.name} gagal dicetak: ${err.message}`);
       }
@@ -227,14 +202,9 @@ server.tool(
       }
     }
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Selesai memproses pencetakan ${receipts.length} nota:\n\n` + results.join("\n"),
-        },
-      ],
-    };
+    return text(
+      `Selesai memproses pencetakan ${receipts.length} nota:\n\n` + results.join("\n")
+    );
   }
 );
 
@@ -263,31 +233,20 @@ server.tool(
       .describe(`Nama printer Windows Spooler. Default: '${DEFAULT_PRINTER_NAME}'`),
   },
   async ({ name, usageM3, total, garbageFee, period, printerName }) => {
-    const fee = garbageFee !== undefined ? garbageFee : UANG_PLASTIK_SAMPAH;
+    const settings = getSettings();
+    const fee = garbageFee !== undefined ? garbageFee : settings.garbageFee;
     const bill = computeReceipt(name, usageM3, total, period, fee);
-    const targetPrinter = printerName || DEFAULT_PRINTER_NAME;
+    const targetPrinter = printerName || settings.printerName;
     const rawBuffer = buildEscposReceipt(bill);
 
     try {
       const result = await sendRawToPrinter(rawBuffer, targetPrinter);
       const preview = buildTextReceiptPreview(bill);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `✅ ${result.message}\n\nNota Kustom ${bill.name} berhasil dicetak.\n\n\`\`\`\n${preview}\n\`\`\``,
-          },
-        ],
-      };
+      return text(
+        `✅ ${result.message}\n\nNota Kustom ${bill.name} berhasil dicetak.\n\n\`\`\`\n${preview}\n\`\`\``
+      );
     } catch (err: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `❌ Gagal mencetak nota kustom: ${err.message}`,
-          },
-        ],
-      };
+      return text(`❌ Gagal mencetak nota kustom: ${err.message}`);
     }
   }
 );
@@ -306,26 +265,145 @@ server.tool(
       .describe(`Nama printer yang ingin diperiksa. Default: '${DEFAULT_PRINTER_NAME}'`),
   },
   async ({ printerName }) => {
-    const target = printerName || DEFAULT_PRINTER_NAME;
+    const target = printerName || getSettings().printerName;
     const status = await checkPrinterStatus(target);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Status Printer '${target}':`,
-            `- Terdeteksi: ${status.isAvailable ? "Ya ✅" : "Tidak ❌"}`,
-            `- Port: ${status.port}`,
-            `- Driver: ${status.driver}`,
-            `- Status Spooler: ${status.status}`,
-            status.rawError ? `- Detail Error: ${status.rawError}` : "",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        },
-      ],
-    };
+    return text(
+      [
+        `Status Printer '${target}':`,
+        `- Terdeteksi: ${status.isAvailable ? "Ya ✅" : "Tidak ❌"}`,
+        `- Port: ${status.port}`,
+        `- Driver: ${status.driver}`,
+        `- Status Spooler: ${status.status}`,
+        status.rawError ? `- Detail Error: ${status.rawError}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+  }
+);
+
+/**
+ * TOOL 7: get_settings
+ * Melihat periode tagihan (bulan & tahun) serta printer yang sedang dipakai
+ */
+server.tool(
+  "get_settings",
+  "Menampilkan pengaturan aktif: periode bulan & tahun tagihan, printer, dan biaya sampah.",
+  {},
+  async () => {
+    const settings = getSettings();
+    const store = loadStore();
+    return text(
+      [
+        `Periode aktif: ${settings.period}`,
+        `Bulan: ${settings.month}`,
+        `Tahun: ${settings.year}`,
+        `Printer: ${settings.printerName}`,
+        `Biaya plastik sampah: ${formatRupiah(settings.garbageFee)}`,
+        `Jumlah unit terdaftar: ${store.units.length}`,
+        `File data: ${process.env.RECEIPT_DATA_DIR || "data/units.json"}`,
+      ].join("\n")
+    );
+  }
+);
+
+/**
+ * TOOL 8: set_period
+ * Mengubah bulan & tahun tagihan yang dipakai semua nota
+ */
+server.tool(
+  "set_period",
+  "Mengubah bulan dan tahun tagihan (misal September 2026) yang dipakai untuk semua nota.",
+  {
+    month: z
+      .string()
+      .describe(`Nama bulan dalam Bahasa Indonesia, contoh: 'September'. Pilihan: ${MONTHS.join(", ")}`),
+    year: z.number().describe("Tahun tagihan, contoh: 2026"),
+  },
+  async ({ month, year }) => {
+    const store = setSettings({ month, year, period: makePeriod(month, year) });
+    return text(`✅ Periode tagihan diubah menjadi: ${store.settings.period}`);
+  }
+);
+
+/**
+ * TOOL 9: set_garbage_fee
+ * Mengubah biaya plastik sampah per unit
+ */
+server.tool(
+  "set_garbage_fee",
+  "Mengubah biaya plastik sampah (uang sampah) per unit yang dipakai untuk semua nota.",
+  {
+    garbageFee: z.number().describe("Biaya plastik sampah dalam Rupiah, contoh: 8498"),
+  },
+  async ({ garbageFee }) => {
+    const store = setSettings({ garbageFee });
+    return text(
+      `✅ Biaya plastik sampah diubah menjadi ${formatRupiah(store.settings.garbageFee)}.`
+    );
+  }
+);
+
+/**
+ * TOOL 10: update_unit
+ * Menambah atau mengubah unit: nama, pemakaian m3, dan total tagihan
+ */
+server.tool(
+  "update_unit",
+  "Menambah unit baru atau mengubah data unit yang sudah ada (nama, pemakaian m3, total tagihan).",
+  {
+    name: z.string().describe("Nama unit/penghuni, contoh: 'Mbak Oci'"),
+    usageM3: z.number().describe("Jumlah pemakaian air dalam m3"),
+    total: z.number().describe("Total tagihan dalam Rupiah"),
+  },
+  async ({ name, usageM3, total }) => {
+    const units = getUnits();
+    const target = name.toLowerCase().trim();
+    const index = units.findIndex((u) => u.name.toLowerCase().trim() === target);
+
+    if (index >= 0) {
+      units[index] = { ...units[index], name, usageM3, total };
+      setUnits(units);
+      return text(
+        `✅ Unit '${name}' diperbarui: ${usageM3} m3, total ${formatRupiah(total)}.`
+      );
+    }
+
+    units.push({
+      id: name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+      name,
+      usageM3,
+      total,
+    });
+    setUnits(units);
+    return text(
+      `✅ Unit baru '${name}' ditambahkan: ${usageM3} m3, total ${formatRupiah(total)}.`
+    );
+  }
+);
+
+/**
+ * TOOL 11: remove_unit
+ * Menghapus unit dari daftar
+ */
+server.tool(
+  "remove_unit",
+  "Menghapus unit/penghuni dari daftar tagihan.",
+  {
+    name: z.string().describe("Nama unit/penghuni yang ingin dihapus, contoh: 'Mbak Oci'"),
+  },
+  async ({ name }) => {
+    const units = getUnits();
+    const target = name.toLowerCase().trim();
+    const filtered = units.filter((u) => u.name.toLowerCase().trim() !== target);
+
+    if (filtered.length === units.length) {
+      return text(`Unit dengan nama '${name}' tidak ditemukan dalam daftar.`);
+    }
+
+    setUnits(filtered);
+    return text(`✅ Unit '${name}' dihapus. Sisa ${filtered.length} unit terdaftar.`);
   }
 );
 

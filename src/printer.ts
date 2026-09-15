@@ -11,7 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const DEFAULT_PRINTER_NAME = process.env.PRINTER_NAME || "POS-58";
-
 export interface PrinterStatus {
   name: string;
   isAvailable: boolean;
@@ -21,10 +20,29 @@ export interface PrinterStatus {
   rawError?: string;
 }
 
+/** Reject printer names that could break out of the PowerShell single-quoted literal. */
+function assertSafePrinterName(printerName: string): void {
+  if (!printerName || /['"`$;|&<>\r\n]/.test(printerName)) {
+    throw new Error(`Nama printer '${printerName}' tidak valid.`);
+  }
+}
+
 /**
  * Check whether the thermal printer is installed and available in Windows Spooler
  */
 export async function checkPrinterStatus(printerName: string = DEFAULT_PRINTER_NAME): Promise<PrinterStatus> {
+  try {
+    assertSafePrinterName(printerName);
+  } catch (err: any) {
+    return {
+      name: printerName,
+      isAvailable: false,
+      port: "Unknown",
+      driver: "Unknown",
+      status: err.message,
+    };
+  }
+
   const psCommand = `powershell -NoProfile -Command "Get-Printer -Name '${printerName}' -ErrorAction SilentlyContinue | Select-Object Name, PortName, DriverName, PrinterStatus | ConvertTo-Json"`;
 
   try {
@@ -67,6 +85,8 @@ export async function sendRawToPrinter(
   data: Buffer,
   printerName: string = DEFAULT_PRINTER_NAME
 ): Promise<{ success: boolean; message: string }> {
+  assertSafePrinterName(printerName);
+
   // Path to print_raw.py
   // In dev: src/print_raw.py; In build: ../src/print_raw.py or build/print_raw.py
   let scriptPath = path.resolve(__dirname, "print_raw.py");
