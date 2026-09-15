@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>PrintReceiptWater.Desktop</RootNamespace>
+    <AssemblyName>PrintReceiptWater</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    <Version>1.0.0</Version>
+    <Product>Nota Air Kos Manyar 3/51-53</Product>
+    <AssemblyTitle>Nota Air Kos Manyar 3/51-53</AssemblyTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="assets\index.html" />
+    <EmbeddedResource Include="assets\app.js" />
+    <EmbeddedResource Include="assets\app.css" />
+    <None Include="assets\print_raw.py" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\src\print_raw.py" Link="print_raw.py" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

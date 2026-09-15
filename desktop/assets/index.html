@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nota Air Kos Manyar 3/51-53</title>
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">Air</span>
+    <div>
+      <h1>Nota Air Kos Manyar 3/51-53</h1>
+      <p>Thermal 58mm &middot; EPPOS EP5821</p>
+    </div>
+  </div>
+
+  <div class="period-bar">
+    <label>
+      <span>Bulan</span>
+      <select id="monthSelect"></select>
+    </label>
+    <label>
+      <span>Tahun</span>
+      <input id="yearInput" type="number" min="2000" max="2100" step="1" inputmode="numeric" />
+    </label>
+    <label>
+      <span>Biaya Sampah</span>
+      <input id="garbageInput" type="number" min="0" step="1" inputmode="numeric" />
+    </label>
+    <div class="period-actions">
+      <button id="applyPeriod" class="primary">Simpan Periode</button>
+      <button id="prevMonth" class="ghost" title="Bulan sebelumnya">&lsaquo;</button>
+      <button id="nextMonth" class="ghost" title="Bulan berikutnya">&rsaquo;</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel list-panel">
+    <div class="panel-head">
+      <h2>Daftar Unit</h2>
+      <span id="unitCount" class="pill">0 unit</span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="unitTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama / Penghuni</th>
+            <th class="num">m3</th>
+            <th class="num">Tagihan Air</th>
+            <th class="num">Sampah</th>
+            <th class="num">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="unitRows"></tbody>
+      </table>
+    </div>
+
+    <div class="totals" id="totals">
+      <span>Total <b id="totalM3">0</b> m3</span>
+      <span>Air <b id="totalWater">Rp. 0</b></span>
+      <span>Sampah <b id="totalGarbage">Rp. 0</b></span>
+      <span>Keseluruhan <b id="totalGrand">Rp. 0</b></span>
+    </div>
+
+    <div class="panel-foot">
+      <button id="printAll" class="primary">Cetak Semua</button>
+      <button id="resetUnits" class="ghost">Reset Bawaan</button>
+      <button id="openData" class="ghost">Folder Data</button>
+    </div>
+  </section>
+
+  <section class="panel form-panel">
+    <div class="panel-head">
+      <h2 id="formTitle">Tambah / Ubah Unit</h2>
+      <button id="clearForm" class="ghost small">Form Baru</button>
+    </div>
+
+    <form id="unitForm" autocomplete="off">
+      <input type="hidden" id="unitId" />
+      <label class="field">
+        <span>Nama Penghuni</span>
+        <input id="unitName" type="text" placeholder="Contoh: Mbak Oci" required />
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>Pemakaian (m3)</span>
+          <input id="unitUsage" type="number" min="0" step="1" value="0" inputmode="numeric" required />
+        </label>
+        <label class="field">
+          <span>Total Tagihan (Rp)</span>
+          <input id="unitTotal" type="number" min="0" step="1" value="0" inputmode="numeric" required />
+        </label>
+      </div>
+      <div class="computed">
+        <div><span>Tagihan Air</span><b id="computedWater">Rp. 0</b></div>
+        <div><span>Uang Sampah</span><b id="computedGarbage">Rp. 0</b></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="primary">Simpan Unit</button>
+        <button type="button" id="deleteUnit" class="danger" hidden>Hapus Unit</button>
+      </div>
+    </form>
+
+    <div class="printer-box">
+      <label class="field">
+        <span>Printer Windows</span>
+        <input id="printerName" type="text" value="POS-58" />
+      </label>
+      <div class="printer-actions">
+        <button id="checkPrinter" class="ghost">Cek Printer</button>
+        <span id="printerStatus" class="status">Belum diperiksa</span>
+      </div>
+      <label class="field">
+        <span>Jeda antar cetak (ms)</span>
+        <input id="printDelay" type="number" min="200" max="15000" step="100" value="1500" inputmode="numeric" />
+      </label>
+    </div>
+  </section>
+
+  <section class="panel preview-panel">
+    <div class="panel-head">
+      <h2>Pratinjau Nota</h2>
+      <div class="head-actions">
+        <button id="previewBtn" class="ghost small">Muat Pratinjau</button>
+        <button id="printBtn" class="primary small">Cetak Nota</button>
+      </div>
+    </div>
+    <div class="preview-actions">
+      <label class="field">
+        <span>Nota yang dipilih</span>
+        <select id="previewSelect"></select>
+      </label>
+    </div>
+    <pre id="preview" class="preview">Pilih unit pada daftar untuk melihat pratinjau nota.</pre>
+    <details class="html-preview">
+      <summary>Pratinjau cetak (WebView / dialog print)</summary>
+      <iframe id="printFrame" title="Pratinjau cetak"></iframe>
+      <small>Gunakan tombol cetak pada panel ini untuk mengirim nota ke printer ESC/POS.</small>
+    </details>
+  </section>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
