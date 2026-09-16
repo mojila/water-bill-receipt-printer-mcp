@@ -13,6 +13,18 @@ bin/
 obj/
 *.user
 
+# Android
+android/.gradle/
+android/local.properties
+android/build/
+android/app/build/
+android/.kotlin/
+android/captures/
+*.apk
+*.aab
+*.keystore
+!android/gradle/wrapper/gradle-wrapper.jar
+
 # Environment
 .env
 .env.*

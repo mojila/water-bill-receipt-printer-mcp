@@ -4,8 +4,9 @@ Dua cara mencetak nota **Tagihan Air Kos Manyar 3/51-53** ke printer thermal 58m
 
 1. **MCP Server** (`src/`) — dipakai dari asisten AI via Model Context Protocol.
 2. **Desktop App** (`desktop/`) — aplikasi Windows **WebView2** untuk mencetak dan mengubah data unit secara manual.
+3. **Android App** (`android/`) — aplikasi Android yang mencetak lewat **Bluetooth Classic (SPP)** tanpa kabel.
 
-Keduanya memakai **file data yang sama** (`data/units.json`), jadi perubahan di aplikasi desktop langsung terlihat oleh MCP dan sebaliknya.
+Ketiganya memakai **file data yang sama** (`units.json`), jadi perubahan di aplikasi desktop langsung terlihat oleh MCP dan sebaliknya.
 
 ---
 
@@ -89,6 +90,80 @@ desktop/
     ├── app.js                         # logika UI + jembatan WebView2
     └── print_raw.py
 ```
+
+---
+
+## Android App (Bluetooth SPP)
+
+Aplikasi Android untuk mencetak nota lewat **Bluetooth Classic**, tanpa kabel dan tanpa
+driver Windows. Penjelasan lengkap ada di [`android/README.md`](android/README.md).
+
+**Fitur:**
+
+- Cari & pilih printer thermal Bluetooth (yang sudah *paired* ditampilkan lebih dulu).
+- Cek kesiapan Bluetooth dan printer sebelum mencetak.
+- Daftar unit, tambah/ubah/hapus, periode bulan & tahun, biaya uang sampah.
+- Pratinjau nota 58mm dan tombol **Cetak Nota** / **Cetak Semua** dengan jeda antar cetak.
+
+### Prasyarat Android
+
+| Kebutuhan | Keterangan |
+|:--|:--|
+| JDK 17 | https://adoptium.net atau bawaan Android Studio |
+| Android SDK | Platform 35 + build-tools; termudah lewat Android Studio |
+| Perangkat Android 8.0+ (API 26+) | Dengan Bluetooth dan printer sudah *paired* |
+
+### Membangun Android
+
+```bash
+# Sekali saja: buat Gradle wrapper (binernya tidak disertakan di repo)
+gradle wrapper --gradle-version 8.11.1
+
+# Salin local.properties.example -> local.properties, sesuaikan sdk.dir
+
+npm run android:debug      # APK debug
+npm run android:install    # build + pasang via adb
+npm run android:release    # APK release
+npm run android:bundle     # AAB
+npm run android:clean
+```
+
+Hasil build: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Struktur Android
+
+```
+android/
+├── settings.gradle.kts
+├── build.gradle.kts
+├── gradle.properties
+├── gradle/wrapper/                      # gradle-wrapper.jar dibuat lokal
+├── local.properties.example
+└── app/
+    ├── build.gradle.kts
+    └── src/
+        ├── main/
+        │   ├── AndroidManifest.xml       # izin Bluetooth
+        │   ├── java/com/kosmanyar/notaair/
+        │   │   ├── MainActivity.kt
+        │   │   ├── MainViewModel.kt
+        │   │   ├── data/
+        │   │   │   ├── ReceiptCore.kt    # port src/core.ts
+        │   │   │   ├── EscPos.kt         # port src/escpos.ts
+        │   │   │   └── Store.kt          # port src/store.ts
+        │   │   ├── printer/
+        │   │   │   └── BluetoothPrinter.kt
+        │   │   └── ui/
+        │   │       ├── Theme.kt
+        │   │       └── NotaAirScreen.kt
+        │   └── res/
+        └── test/java/...                 # pengujian ESC/POS & format
+```
+
+### Lokasi Data di Android
+
+Aplikasi memakai `units.json` dengan **skema identik** (`version`, `settings`, `units`),
+disimpan di penyimpanan privat aplikasi (`files/units.json`) — bukan folder `data/` di repo.
 
 ---
 
@@ -182,6 +257,10 @@ Tambahkan konfigurasi berikut ke konfigurasi MCP client Anda (misal `claude_desk
 - **Build desktop app**:
   ```bash
   npm run desktop:build
+  ```
+- **Build Android app**:
+  ```bash
+  npm run android:debug
   ```
 
 ---

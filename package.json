@@ -12,7 +12,12 @@
     "desktop:build": "dotnet build desktop/PrintReceiptWater.Desktop.csproj -c Release",
     "desktop:start": "dotnet run --project desktop/PrintReceiptWater.Desktop.csproj -c Release",
     "desktop:publish": "dotnet publish desktop/PrintReceiptWater.Desktop.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o dist/desktop",
-    "desktop:sync-assets": "powershell -NoProfile -Command \"Copy-Item src/print_raw.py desktop/assets/print_raw.py -Force\""
+    "desktop:sync-assets": "powershell -NoProfile -Command \"Copy-Item src/print_raw.py desktop/assets/print_raw.py -Force\"",
+    "android:debug": "cd android && gradlew.bat assembleDebug",
+    "android:release": "cd android && gradlew.bat assembleRelease",
+    "android:install": "cd android && gradlew.bat installDebug",
+    "android:bundle": "cd android && gradlew.bat bundleRelease",
+    "android:clean": "cd android && gradlew.bat clean"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",

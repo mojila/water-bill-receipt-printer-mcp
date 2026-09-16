@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Receipt paper -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M40,22 L68,22 L68,52 L40,52 Z" />
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M40,20 L68,20 L68,24 L40,24 Z" />
+
+    <!-- Printer body -->
+    <path
+        android:fillColor="#475569"
+        android:pathData="M32,36 C32,33 34,31 37,31 L71,31 C74,31 76,33 76,36 L76,80 C76,83 74,85 71,85 L37,85 C34,85 32,83 32,80 Z" />
+
+    <!-- Paper slot -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M45,52 L63,52 L63,60 L45,60 Z" />
+
+    <!-- Front panel -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M36,62 L72,62 L72,78 L36,78 Z" />
+
+    <!-- Status LEDs -->
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M47,69 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0" />
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M54,69 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0" />
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M61,69 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0" />
+
+    <!-- Paper output -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M36,78 L72,78 L72,84 L36,84 Z" />
+</vector>
