@@ -9,52 +9,88 @@
 <body>
 <header class="topbar">
   <div class="brand">
-    <span class="logo">Air</span>
-    <div>
+    <div class="logo-wrapper">
+      <span class="logo">AIR</span>
+      <span class="brand-badge">58mm</span>
+    </div>
+    <div class="brand-info">
       <h1>Nota Air Kos Manyar 3/51-53</h1>
-      <p>Thermal 58mm &middot; EPPOS EP5821</p>
+      <p class="subtitle">Thermal ESC/POS &middot; EPPOS EP5821</p>
     </div>
   </div>
 
-  <div class="period-bar">
-    <label>
-      <span>Bulan</span>
-      <select id="monthSelect"></select>
-    </label>
-    <label>
-      <span>Tahun</span>
-      <input id="yearInput" type="number" min="2000" max="2100" step="1" inputmode="numeric" />
-    </label>
-    <label>
-      <span>Biaya Sampah</span>
-      <input id="garbageInput" type="number" min="0" step="1" inputmode="numeric" />
-    </label>
-    <div class="period-actions">
-      <button id="applyPeriod" class="primary">Simpan Periode</button>
-      <button id="prevMonth" class="ghost" title="Bulan sebelumnya">&lsaquo;</button>
-      <button id="nextMonth" class="ghost" title="Bulan berikutnya">&rsaquo;</button>
+  <div class="topbar-controls">
+    <div class="period-group">
+      <div class="control-field">
+        <label for="monthSelect">Bulan</label>
+        <select id="monthSelect"></select>
+      </div>
+      <div class="control-field">
+        <label for="yearInput">Tahun</label>
+        <input id="yearInput" type="number" min="2000" max="2100" step="1" inputmode="numeric" />
+      </div>
+      <div class="control-field">
+        <label for="garbageInput">Biaya Sampah</label>
+        <input id="garbageInput" type="number" min="0" step="1" inputmode="numeric" />
+      </div>
+      <div class="period-nav-buttons">
+        <button id="prevMonth" class="ghost icon-btn" title="Bulan sebelumnya" aria-label="Bulan sebelumnya">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button id="nextMonth" class="ghost icon-btn" title="Bulan berikutnya" aria-label="Bulan berikutnya">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      <button id="applyPeriod" class="primary save-period-btn">Simpan Periode</button>
+    </div>
+
+    <div class="topbar-divider"></div>
+
+    <div class="topbar-tools">
+      <div class="printer-quick-badge" id="printerQuickStatus" title="Status printer">
+        <span class="status-indicator-dot" id="printerStatusDot"></span>
+        <span class="printer-name-label" id="topPrinterName">POS-58</span>
+        <button id="quickCheckPrinter" class="ghost icon-btn small-btn" title="Cek status printer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+      </div>
+      <button id="openData" class="ghost tool-btn" title="Buka folder data JSON">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Folder Data</span>
+      </button>
+      <button id="resetUnits" class="ghost tool-btn danger-hover" title="Kembalikan daftar unit ke bawaan">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset Bawaan</span>
+      </button>
     </div>
   </div>
 </header>
 
 <main class="layout">
+  <!-- PANE 1: Unit List -->
   <section class="panel list-panel">
     <div class="panel-head">
-      <h2>Daftar Unit</h2>
-      <span id="unitCount" class="pill">0 unit</span>
+      <div class="head-title-wrap">
+        <h2>Daftar Unit</h2>
+        <span id="unitCount" class="badge-pill">0 unit</span>
+      </div>
+      <div class="list-search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="unitSearch" type="search" placeholder="Cari penghuni..." autocomplete="off" />
+      </div>
     </div>
 
     <div class="table-wrap">
       <table id="unitTable">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Nama / Penghuni</th>
-            <th class="num">m3</th>
-            <th class="num">Tagihan Air</th>
-            <th class="num">Sampah</th>
-            <th class="num">Total</th>
-            <th></th>
+            <th class="col-idx">#</th>
+            <th class="col-name">Nama / Penghuni</th>
+            <th class="num col-usage">m&sup3;</th>
+            <th class="num col-water">Tagihan Air</th>
+            <th class="num col-garbage">Sampah</th>
+            <th class="num col-total">Total</th>
+            <th class="col-action"></th>
           </tr>
         </thead>
         <tbody id="unitRows"></tbody>
@@ -62,91 +98,181 @@
     </div>
 
     <div class="totals" id="totals">
-      <span>Total <b id="totalM3">0</b> m3</span>
-      <span>Air <b id="totalWater">Rp. 0</b></span>
-      <span>Sampah <b id="totalGarbage">Rp. 0</b></span>
-      <span>Keseluruhan <b id="totalGrand">Rp. 0</b></span>
+      <div class="total-item">
+        <span class="total-label">Total Volume</span>
+        <span class="total-value"><b id="totalM3">0</b> m&sup3;</span>
+      </div>
+      <div class="total-item">
+        <span class="total-label">Tagihan Air</span>
+        <span class="total-value" id="totalWater">Rp. 0</span>
+      </div>
+      <div class="total-item">
+        <span class="total-label">Biaya Sampah</span>
+        <span class="total-value" id="totalGarbage">Rp. 0</span>
+      </div>
+      <div class="total-item total-highlight">
+        <span class="total-label">Keseluruhan</span>
+        <span class="total-value" id="totalGrand">Rp. 0</span>
+      </div>
     </div>
 
     <div class="panel-foot">
-      <button id="printAll" class="primary">Cetak Semua</button>
-      <button id="resetUnits" class="ghost">Reset Bawaan</button>
-      <button id="openData" class="ghost">Folder Data</button>
+      <button id="printAll" class="primary btn-print-all">
+        <svg class="btn-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        <span class="btn-text">Cetak Semua Nota</span>
+        <span class="btn-spinner" hidden></span>
+      </button>
     </div>
   </section>
 
+  <!-- PANE 2: Unit Form & Configuration -->
   <section class="panel form-panel">
     <div class="panel-head">
-      <h2 id="formTitle">Tambah / Ubah Unit</h2>
-      <button id="clearForm" class="ghost small">Form Baru</button>
+      <div class="head-title-wrap">
+        <h2 id="formTitle">Tambah / Ubah Unit</h2>
+        <span class="kbd-badge" title="Shortcut keyboard">Ctrl+S</span>
+      </div>
+      <button id="clearForm" class="ghost small-btn" title="Form baru (Ctrl+N)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Form Baru</span>
+      </button>
     </div>
 
     <form id="unitForm" autocomplete="off">
       <input type="hidden" id="unitId" />
-      <label class="field">
-        <span>Nama Penghuni</span>
-        <input id="unitName" type="text" placeholder="Contoh: Mbak Oci" required />
-      </label>
+      <div class="field">
+        <label for="unitName">Nama Penghuni</label>
+        <div class="input-wrap">
+          <input id="unitName" type="text" placeholder="Contoh: Mbak Oci" required />
+        </div>
+      </div>
       <div class="field-row">
-        <label class="field">
-          <span>Pemakaian (m3)</span>
-          <input id="unitUsage" type="number" min="0" step="1" value="0" inputmode="numeric" required />
-        </label>
-        <label class="field">
-          <span>Total Tagihan (Rp)</span>
-          <input id="unitTotal" type="number" min="0" step="1" value="0" inputmode="numeric" required />
-        </label>
+        <div class="field">
+          <label for="unitUsage">Pemakaian Air (m&sup3;)</label>
+          <div class="input-wrap suffix-wrap">
+            <input id="unitUsage" type="number" min="0" step="1" value="0" inputmode="numeric" required />
+            <span class="input-suffix">m&sup3;</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="unitTotal">Total Tagihan (Rp)</label>
+          <div class="input-wrap prefix-wrap">
+            <span class="input-prefix">Rp</span>
+            <input id="unitTotal" type="text" inputmode="numeric" value="0" placeholder="0" required />
+          </div>
+        </div>
       </div>
-      <div class="computed">
-        <div><span>Tagihan Air</span><b id="computedWater">Rp. 0</b></div>
-        <div><span>Uang Sampah</span><b id="computedGarbage">Rp. 0</b></div>
+
+      <div class="computed-box">
+        <div class="computed-header">Rincian Perhitungan Otomatis</div>
+        <div class="computed-grid">
+          <div class="computed-item">
+            <span class="computed-lbl">Tagihan Air</span>
+            <b class="computed-val" id="computedWater">Rp. 0</b>
+          </div>
+          <div class="computed-item">
+            <span class="computed-lbl">Uang Sampah</span>
+            <b class="computed-val" id="computedGarbage">Rp. 0</b>
+          </div>
+        </div>
       </div>
+
       <div class="form-actions">
-        <button type="submit" class="primary">Simpan Unit</button>
-        <button type="button" id="deleteUnit" class="danger" hidden>Hapus Unit</button>
+        <button type="submit" class="primary save-unit-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span>Simpan Unit</span>
+        </button>
+        <button type="button" id="deleteUnit" class="danger delete-unit-btn" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Hapus</span>
+        </button>
       </div>
     </form>
 
     <div class="printer-box">
-      <label class="field">
-        <span>Printer Windows</span>
-        <input id="printerName" type="text" value="POS-58" />
-      </label>
-      <div class="printer-actions">
-        <button id="checkPrinter" class="ghost">Cek Printer</button>
+      <div class="printer-box-title">Konfigurasi Printer Thermal</div>
+      <div class="field">
+        <label for="printerName">Nama Printer Windows</label>
+        <div class="printer-input-group">
+          <input id="printerName" type="text" value="POS-58" />
+          <button id="checkPrinter" class="ghost check-printer-btn">Cek Printer</button>
+        </div>
+      </div>
+      <div class="printer-status-bar">
+        <span class="status-dot" id="printerBoxDot"></span>
         <span id="printerStatus" class="status">Belum diperiksa</span>
       </div>
-      <label class="field">
-        <span>Jeda antar cetak (ms)</span>
-        <input id="printDelay" type="number" min="200" max="15000" step="100" value="1500" inputmode="numeric" />
-      </label>
+      <div class="field">
+        <label for="printDelay">Jeda antar cetak borongan (ms)</label>
+        <div class="input-wrap suffix-wrap">
+          <input id="printDelay" type="number" min="200" max="15000" step="100" value="1500" inputmode="numeric" />
+          <span class="input-suffix">ms</span>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- PANE 3: Thermal Receipt Preview -->
   <section class="panel preview-panel">
     <div class="panel-head">
-      <h2>Pratinjau Nota</h2>
+      <div class="head-title-wrap">
+        <h2>Pratinjau Nota</h2>
+        <span class="kbd-badge" title="Shortcut cetak nota">Ctrl+P</span>
+      </div>
       <div class="head-actions">
-        <button id="previewBtn" class="ghost small">Muat Pratinjau</button>
-        <button id="printBtn" class="primary small">Cetak Nota</button>
+        <button id="previewBtn" class="ghost small-btn" title="Segarkan pratinjau">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Muat</span>
+        </button>
+        <button id="printBtn" class="primary small-btn print-single-btn">
+          <svg class="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span class="btn-text">Cetak Nota</span>
+          <span class="btn-spinner" hidden></span>
+        </button>
       </div>
     </div>
+
     <div class="preview-actions">
-      <label class="field">
-        <span>Nota yang dipilih</span>
+      <div class="field">
+        <label for="previewSelect">Pilih Unit Nota</label>
         <select id="previewSelect"></select>
-      </label>
+      </div>
     </div>
-    <pre id="preview" class="preview">Pilih unit pada daftar untuk melihat pratinjau nota.</pre>
-    <details class="html-preview">
-      <summary>Pratinjau cetak (WebView / dialog print)</summary>
-      <iframe id="printFrame" title="Pratinjau cetak"></iframe>
-      <small>Gunakan tombol cetak pada panel ini untuk mengirim nota ke printer ESC/POS.</small>
-    </details>
+
+    <div class="receipt-viewport">
+      <div class="receipt-paper">
+        <div class="receipt-tear tear-top"></div>
+        <pre id="preview" class="receipt-content">Pilih unit pada daftar untuk melihat pratinjau nota.</pre>
+        <div class="receipt-tear tear-bottom"></div>
+      </div>
+    </div>
   </section>
 </main>
 
-<div id="toast" class="toast" hidden></div>
+<!-- Custom Modal Confirmation Dialog -->
+<div id="confirmModal" class="modal-backdrop" hidden>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div class="modal-icon-wrap" id="modalIconWrap">
+        <svg id="modalIconWarn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h3 id="modalTitle">Konfirmasi Tindakan</h3>
+    </div>
+    <div class="modal-body">
+      <p id="modalMessage">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="modalCancelBtn" class="ghost">Batal (Esc)</button>
+      <button type="button" id="modalConfirmBtn" class="primary danger">Ya, Lanjutkan (Enter)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
+<div id="toast" class="toast" hidden>
+  <span class="toast-icon" id="toastIcon"></span>
+  <span class="toast-message" id="toastMessage"></span>
+</div>
 
 <script src="app.js"></script>
 </body>

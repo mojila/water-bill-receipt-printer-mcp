@@ -638,8 +638,10 @@ internal static class AppPaths
         var baseDir = AppContext.BaseDirectory;
 
         var embedded = Path.Combine(baseDir, "assets");
-        if (File.Exists(Path.Combine(embedded, "index.html"))) return embedded;
 
+        // Always refresh the extracted assets from the embedded resources so a stale
+        // on-disk copy (e.g. an old index.html/app.css/app.js from a previous build)
+        // can never be served. TryExtractEmbeddedAssets overwrites existing files.
         TryExtractEmbeddedAssets(embedded);
         if (File.Exists(Path.Combine(embedded, "index.html"))) return embedded;
 

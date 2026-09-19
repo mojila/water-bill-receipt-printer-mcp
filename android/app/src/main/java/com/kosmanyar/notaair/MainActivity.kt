@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
                     onSetPrintDelay = viewModel::setPrintDelay,
                     onPrintOne = viewModel::printOne,
                     onPrintAll = viewModel::printAll,
+                    onCancelPrinting = viewModel::cancelPrinting,
                     onRefreshPreview = viewModel::refreshPreview,
                     onMessageShown = viewModel::consumeMessage
                 )

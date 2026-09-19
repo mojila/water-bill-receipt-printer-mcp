@@ -40,6 +40,9 @@ data class UiState(
     val selectedPrinterAddress: String? = null,
     val scanning: Boolean = false,
     val busy: Boolean = false,
+    val printProgressCurrent: Int = 0,
+    val printProgressTotal: Int = 0,
+    val printProgressName: String = "",
     val printDelayMs: Long = 1500,
     val dataFile: String = "",
     val message: String? = null,
@@ -54,6 +57,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     private var scanJob: Job? = null
+    private var printJob: Job? = null
 
     init {
         reload()
@@ -195,12 +199,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshPrinters() {
         val bonded = BluetoothPrinter.bondedDevices(getApplication())
         val address = _state.value.selectedPrinterAddress
-        val stillValid = address != null && bonded.any { it.address == address }
+        val stillValid = address == null || bonded.any { it.address == address }
         _state.update {
             it.copy(
                 devices = mergeDevices(it.devices, bonded),
-                selectedPrinterAddress = if (stillValid) address else it.selectedPrinterAddress
+                // Drop a stored printer that is no longer paired so printing cannot
+                // silently target a device that has been unpaired or renamed away.
+                selectedPrinterAddress = if (stillValid) address else null
             )
+        }
+        if (!stillValid) {
+            prefs().edit().remove(KEY_PRINTER_ADDRESS).apply()
         }
     }
 
@@ -307,14 +316,29 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
-        viewModelScope.launch {
-            _state.update { it.copy(busy = true, message = "Mencetak...", messageIsError = false) }
+        printJob?.cancel()
+        printJob = viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    busy = true,
+                    printProgressCurrent = 0,
+                    printProgressTotal = bills.size,
+                    printProgressName = bills.firstOrNull()?.name.orEmpty(),
+                    message = "Menyiapkan pencetakan...",
+                    messageIsError = false
+                )
+            }
             var ok = 0
             var failed = 0
 
-            bills.forEachIndexed { index, bill ->
+            for ((index, bill) in bills.withIndex()) {
                 _state.update {
-                    it.copy(message = "Mencetak ${index + 1}/${bills.size}: ${bill.name}...")
+                    it.copy(
+                        printProgressCurrent = index + 1,
+                        printProgressTotal = bills.size,
+                        printProgressName = bill.name,
+                        message = "Mencetak ${index + 1} dari ${bills.size}: ${bill.name}..."
+                    )
                 }
 
                 val payload = EscPos.buildReceipt(bill)
@@ -335,7 +359,31 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 ok == 0 -> "Gagal mencetak: $failed nota gagal."
                 else -> "Selesai: $ok berhasil, $failed gagal."
             }
-            _state.update { it.copy(busy = false, message = message, messageIsError = failed > 0) }
+            _state.update {
+                it.copy(
+                    busy = false,
+                    printProgressCurrent = 0,
+                    printProgressTotal = 0,
+                    printProgressName = "",
+                    message = message,
+                    messageIsError = failed > 0
+                )
+            }
+        }
+    }
+
+    fun cancelPrinting() {
+        printJob?.cancel()
+        printJob = null
+        _state.update {
+            it.copy(
+                busy = false,
+                printProgressCurrent = 0,
+                printProgressTotal = 0,
+                printProgressName = "",
+                message = "Pencetakan dibatalkan.",
+                messageIsError = false
+            )
         }
     }
 
@@ -345,6 +393,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         stopScan()
+        cancelPrinting()
         super.onCleared()
     }
 

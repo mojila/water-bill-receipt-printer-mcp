@@ -1,6 +1,7 @@
 package com.kosmanyar.notaair.printer
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -69,6 +70,7 @@ object BluetoothPrinter {
     fun isBluetoothEnabled(context: Context): Boolean = adapter(context)?.isEnabled == true
 
     /** Printers already paired in Android Bluetooth settings. */
+    @SuppressLint("MissingPermission") // guarded by hasPermissions() above
     fun bondedDevices(context: Context): List<PrinterDevice> {
         if (!hasPermissions(context)) return emptyList()
         val adapter = adapter(context) ?: return emptyList()
@@ -87,6 +89,7 @@ object BluetoothPrinter {
      * Discover nearby Bluetooth devices as a stream of results. Emits the current set on
      * every discovery event, and completes when discovery finishes.
      */
+    @SuppressLint("MissingPermission") // guarded by hasPermissions(); receiver work is wrapped
     fun discoverDevices(context: Context): Flow<List<PrinterDevice>> = callbackFlow {
         if (!hasPermissions(context)) {
             close(SecurityException("Izin Bluetooth belum diberikan."))
