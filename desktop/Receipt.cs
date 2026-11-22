@@ -136,8 +136,9 @@ public static class ReceiptText
             divider,
             Center("SCAN QRIS UNTUK PEMBAYARAN"),
             Center("MOCH.AJI LAKSONO"),
-            Center("NMID: ID1026637820527"),
+            "",
             Center("[ QR CODE QRIS ]"),
+            "",
             divider,
             Center("Terima Kasih"),
             Center($"Dicetak: {PrintDate()}"),
@@ -209,8 +210,7 @@ public static class EscPos
         sb.Append(AlignCenter).Append(BoldOn);
         sb.Append("SCAN QRIS UNTUK PEMBAYARAN\n");
         sb.Append(BoldOff);
-        sb.Append("MOCH.AJI LAKSONO\n");
-        sb.Append("NMID: ID1026637820527\n");
+        sb.Append("MOCH.AJI LAKSONO\n\n");
 
         var headBytes = Encoding.ASCII.GetBytes(sb.ToString());
         sb.Clear();

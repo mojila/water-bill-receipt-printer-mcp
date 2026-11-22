@@ -94,8 +94,7 @@ export function buildEscposReceipt(bill: UnitBill): Buffer {
   parts.push(COMMANDS.BOLD_ON);
   parts.push("SCAN QRIS UNTUK PEMBAYARAN\n");
   parts.push(COMMANDS.BOLD_OFF);
-  parts.push("MOCH.AJI LAKSONO\n");
-  parts.push("NMID: ID1026637820527\n");
+  parts.push("MOCH.AJI LAKSONO\n\n");
 
   const beforeQr = Buffer.from(parts.join(""), "ascii");
   parts.length = 0;
@@ -149,8 +148,9 @@ export function buildTextReceiptPreview(bill: UnitBill): string {
     divider,
     centerText("SCAN QRIS UNTUK PEMBAYARAN"),
     centerText("MOCH.AJI LAKSONO"),
-    centerText("NMID: ID1026637820527"),
+    "",
     centerText("[ QR CODE QRIS ]"),
+    "",
     divider,
     centerText("Terima Kasih"),
     centerText(`Dicetak: ${printDate}`),
@@ -233,10 +233,9 @@ export function buildReceiptHtml(bill: UnitBill, paperWidthMm: number = 58): str
   <div class="center">TOTAL TAGIHAN:</div>
   <div class="center big">${escape(formatRupiah(bill.total))}</div>
   <div class="divider"></div>
-  <div class="center" style="font-weight: bold; margin-top: 4px;">SCAN QRIS UNTUK PEMBAYARAN</div>
-  <div class="center">MOCH.AJI LAKSONO</div>
-  <div class="center muted">NMID: ID1026637820527</div>
-  <div class="center" style="margin: 6px 0;">
+  <div class="center" style="font-weight: bold; margin-top: 6px;">SCAN QRIS UNTUK PEMBAYARAN</div>
+  <div class="center" style="margin-bottom: 8px;">MOCH.AJI LAKSONO</div>
+  <div class="center" style="margin: 8px 0;">
     <img src="data:image/png;base64,${QRIS_PREVIEW_PNG_BASE64}" alt="QRIS" style="width: 135px; height: 135px; display: inline-block; border: 1px solid #ccc; padding: 3px; background: #fff;" />
   </div>
   <div class="divider"></div>

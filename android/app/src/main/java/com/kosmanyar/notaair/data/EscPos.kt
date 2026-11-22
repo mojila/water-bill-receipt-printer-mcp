@@ -88,8 +88,7 @@ object EscPos {
         add(BOLD_ON)
         add("SCAN QRIS UNTUK PEMBAYARAN\n")
         add(BOLD_OFF)
-        add("MOCH.AJI LAKSONO\n")
-        add("NMID: ID1026637820527\n")
+        add("MOCH.AJI LAKSONO\n\n")
 
         add(QrisData.ESCPOS_BYTES)
         add("\n")

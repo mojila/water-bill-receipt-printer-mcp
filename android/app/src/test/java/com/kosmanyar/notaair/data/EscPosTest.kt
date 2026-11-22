@@ -65,7 +65,6 @@ class EscPosTest {
         assertTrue(escaped.contains("TOTAL TAGIHAN:"))
         assertTrue(escaped.contains("SCAN QRIS UNTUK PEMBAYARAN"))
         assertTrue(escaped.contains("MOCH.AJI LAKSONO"))
-        assertTrue(escaped.contains("ID1026637820527"))
     }
 
     @Test
