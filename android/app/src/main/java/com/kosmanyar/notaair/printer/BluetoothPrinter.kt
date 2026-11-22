@@ -47,7 +47,9 @@ object BluetoothPrinter {
     /** Well-known Serial Port Profile UUID used by virtually all ESC/POS thermal printers. */
     val SPP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
-    private val SOCKET_FLUSH_DELAY_MS = 250L
+    private val SOCKET_FLUSH_DELAY_MS = 600L
+    private const val CHUNK_SIZE = 512
+    private const val CHUNK_DELAY_MS = 25L
 
     /** Runtime permissions needed to scan for and connect to a printer. */
     val REQUIRED_PERMISSIONS: Array<String> =
@@ -252,10 +254,20 @@ object BluetoothPrinter {
                 socket.connect()
 
                 val output = socket.outputStream
-                output.write(payload)
-                output.flush()
 
-                // Give the printer time to drain the buffer before the socket closes.
+                // Send in chunks with small delay so thermal printer receive buffer doesn't overflow
+                var offset = 0
+                while (offset < payload.size) {
+                    val len = minOf(CHUNK_SIZE, payload.size - offset)
+                    output.write(payload, offset, len)
+                    output.flush()
+                    offset += len
+                    if (offset < payload.size) {
+                        Thread.sleep(CHUNK_DELAY_MS)
+                    }
+                }
+
+                // Give the printer time to drain its hardware buffer and print all thermal lines before socket closes.
                 Thread.sleep(SOCKET_FLUSH_DELAY_MS)
 
                 Result.success(Unit)

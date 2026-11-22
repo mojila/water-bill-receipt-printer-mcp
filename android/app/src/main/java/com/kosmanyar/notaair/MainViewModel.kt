@@ -43,7 +43,7 @@ data class UiState(
     val printProgressCurrent: Int = 0,
     val printProgressTotal: Int = 0,
     val printProgressName: String = "",
-    val printDelayMs: Long = 1500,
+    val printDelayMs: Long = 2000,
     val dataFile: String = "",
     val message: String? = null,
     val messageIsError: Boolean = false
