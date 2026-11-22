@@ -134,6 +134,11 @@ public static class ReceiptText
             Center($">>> {bill.TotalFormatted} <<<"),
             Center("[FONT BESAR & BOLD]"),
             divider,
+            Center("SCAN QRIS UNTUK PEMBAYARAN"),
+            Center("MOCH.AJI LAKSONO"),
+            Center("NMID: ID1026637820527"),
+            Center("[ QR CODE QRIS ]"),
+            divider,
             Center("Terima Kasih"),
             Center($"Dicetak: {PrintDate()}"),
             divider,
@@ -201,13 +206,30 @@ public static class EscPos
         sb.Append(DoubleSizeOn).Append(bill.TotalFormatted).Append('\n');
         sb.Append(NormalSize).Append(BoldOff).Append(divider).Append('\n');
 
-        sb.Append(AlignCenter);
+        sb.Append(AlignCenter).Append(BoldOn);
+        sb.Append("SCAN QRIS UNTUK PEMBAYARAN\n");
+        sb.Append(BoldOff);
+        sb.Append("MOCH.AJI LAKSONO\n");
+        sb.Append("NMID: ID1026637820527\n");
+
+        var headBytes = Encoding.ASCII.GetBytes(sb.ToString());
+        sb.Clear();
+
+        sb.Append('\n').Append(AlignCenter);
+        sb.Append(divider).Append('\n');
         sb.Append("Terima Kasih\n");
         sb.Append("Dicetak: ").Append(ReceiptText.PrintDate()).Append('\n');
 
         sb.Append(FeedLines(4));
         sb.Append(PartialCut);
 
-        return Encoding.ASCII.GetBytes(sb.ToString());
+        var tailBytes = Encoding.ASCII.GetBytes(sb.ToString());
+
+        var result = new byte[headBytes.Length + QrisData.EscposBytes.Length + tailBytes.Length];
+        Buffer.BlockCopy(headBytes, 0, result, 0, headBytes.Length);
+        Buffer.BlockCopy(QrisData.EscposBytes, 0, result, headBytes.Length, QrisData.EscposBytes.Length);
+        Buffer.BlockCopy(tailBytes, 0, result, headBytes.Length + QrisData.EscposBytes.Length, tailBytes.Length);
+
+        return result;
     }
 }

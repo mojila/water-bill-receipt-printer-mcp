@@ -1,4 +1,6 @@
 import { UnitBill, formatRupiah, padLine, centerText, LINE_WIDTH } from "./core.js";
+import { QRIS_ESCPOS_BUFFER } from "./qris_data.js";
+import { QRIS_PREVIEW_PNG_BASE64 } from "./qris_preview.js";
 
 // ESC/POS Command Constants
 const ESC = "\x1b";
@@ -87,10 +89,23 @@ export function buildEscposReceipt(bill: UnitBill): Buffer {
   parts.push(COMMANDS.BOLD_OFF);
   parts.push("-".repeat(LINE_WIDTH) + "\n");
 
+  // QRIS PAYMENT
+  parts.push(COMMANDS.ALIGN_CENTER);
+  parts.push(COMMANDS.BOLD_ON);
+  parts.push("SCAN QRIS UNTUK PEMBAYARAN\n");
+  parts.push(COMMANDS.BOLD_OFF);
+  parts.push("MOCH.AJI LAKSONO\n");
+  parts.push("NMID: ID1026637820527\n");
+
+  const beforeQr = Buffer.from(parts.join(""), "ascii");
+  parts.length = 0;
+
   // FOOTER
   const printDate = formatPrintDate();
 
+  parts.push("\n");
   parts.push(COMMANDS.ALIGN_CENTER);
+  parts.push("-".repeat(LINE_WIDTH) + "\n");
   parts.push("Terima Kasih\n");
   parts.push(`Dicetak: ${printDate}\n`);
 
@@ -99,7 +114,8 @@ export function buildEscposReceipt(bill: UnitBill): Buffer {
   // Cut command (in case model has auto-cutter)
   parts.push(COMMANDS.PARTIAL_CUT);
 
-  return Buffer.from(parts.join(""), "ascii");
+  const afterQr = Buffer.from(parts.join(""), "ascii");
+  return Buffer.concat([beforeQr, QRIS_ESCPOS_BUFFER, afterQr]);
 }
 
 /**
@@ -130,6 +146,11 @@ export function buildTextReceiptPreview(bill: UnitBill): string {
     centerText("TOTAL TAGIHAN:"),
     centerText(`>>> ${formatRupiah(bill.total)} <<<`),
     centerText("[FONT BESAR & BOLD]"),
+    divider,
+    centerText("SCAN QRIS UNTUK PEMBAYARAN"),
+    centerText("MOCH.AJI LAKSONO"),
+    centerText("NMID: ID1026637820527"),
+    centerText("[ QR CODE QRIS ]"),
     divider,
     centerText("Terima Kasih"),
     centerText(`Dicetak: ${printDate}`),
@@ -211,6 +232,13 @@ export function buildReceiptHtml(bill: UnitBill, paperWidthMm: number = 58): str
   <div class="double"></div>
   <div class="center">TOTAL TAGIHAN:</div>
   <div class="center big">${escape(formatRupiah(bill.total))}</div>
+  <div class="divider"></div>
+  <div class="center" style="font-weight: bold; margin-top: 4px;">SCAN QRIS UNTUK PEMBAYARAN</div>
+  <div class="center">MOCH.AJI LAKSONO</div>
+  <div class="center muted">NMID: ID1026637820527</div>
+  <div class="center" style="margin: 6px 0;">
+    <img src="data:image/png;base64,${QRIS_PREVIEW_PNG_BASE64}" alt="QRIS" style="width: 135px; height: 135px; display: inline-block; border: 1px solid #ccc; padding: 3px; background: #fff;" />
+  </div>
   <div class="divider"></div>
   <div class="center muted">Terima Kasih<br />Dicetak: ${escape(formatPrintDate())}</div>
 </div>

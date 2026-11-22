@@ -199,7 +199,14 @@
   }
 
   function showPreview(name, text) {
-    el.preview.textContent = text;
+    if (text && text.indexOf("[ QR CODE QRIS ]") !== -1) {
+      var parts = text.split("[ QR CODE QRIS ]");
+      el.preview.innerHTML = escapeHtml(parts[0]) +
+        '<div style="text-align:center;margin:8px 0;"><img src="qris.png" alt="QRIS" style="width:130px;height:130px;display:inline-block;border:1px solid #ddd;padding:4px;background:#fff;border-radius:4px;"/></div>' +
+        escapeHtml(parts[1]);
+    } else {
+      el.preview.textContent = text;
+    }
     if (name) toast("Pratinjau nota " + name);
   }
 

@@ -27,6 +27,7 @@
     <EmbeddedResource Include="assets\index.html" />
     <EmbeddedResource Include="assets\app.js" />
     <EmbeddedResource Include="assets\app.css" />
+    <EmbeddedResource Include="assets\qris.png" />
     <None Include="assets\print_raw.py" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\src\print_raw.py" Link="print_raw.py" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\assets\receipt.png" Link="assets\receipt.png" CopyToOutputDirectory="PreserveNewest" />

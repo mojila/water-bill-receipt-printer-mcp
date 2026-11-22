@@ -665,7 +665,7 @@ internal static class AppPaths
             foreach (var name in assembly.GetManifestResourceNames())
             {
                 var extension = Path.GetExtension(name);
-                if (extension is not (".html" or ".js" or ".css")) continue;
+                if (extension is not (".html" or ".js" or ".css" or ".png")) continue;
 
                 using var stream = assembly.GetManifestResourceStream(name);
                 if (stream is null) continue;
